@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Onde investir — simulador de aportes mensais</title>
+<meta name="description" content="Simule quanto seu dinheiro renderia em poupança, CDB, Tesouro, ações, FIIs e cripto, com gráficos, imposto de renda e correção pela inflação.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Archivo:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+<header class="topo">
+  <span class="selo">Simulador <b>•</b> valores de ago/2026</span>
+  <h1>Onde o seu dinheiro <em>trabalha melhor</em></h1>
+  <p class="sub">Diga quanto você separa por mês e por quanto tempo. O simulador projeta o mesmo aporte em sete aplicações, já descontando imposto de renda e inflação.</p>
+</header>
+
+<div class="painel">
+  <div class="grade-inputs">
+    <div>
+      <label for="aporte">Aporte mensal</label>
+      <div class="campo">
+        <span class="prefixo">R$</span>
+        <input class="dinheiro" id="aporte" type="text" inputmode="numeric" value="500,00" autocomplete="off">
+      </div>
+    </div>
+    <div>
+      <label for="inicial">Valor que você já tem</label>
+      <div class="campo">
+        <span class="prefixo">R$</span>
+        <input class="dinheiro" id="inicial" type="text" inputmode="numeric" value="0,00" autocomplete="off">
+      </div>
+    </div>
+    <div>
+      <label for="anos">Por quanto tempo</label>
+      <div class="prazo-linha"><span class="anos num" id="anos-txt">10</span><span class="rot" id="anos-rot">anos · 120 aportes</span></div>
+      <input id="anos" type="range" min="1" max="40" step="1" value="10" aria-label="Prazo em anos">
+    </div>
+  </div>
+
+  <div class="controles">
+    <div class="seg" role="group" aria-label="Cenário de rentabilidade">
+      <button type="button" data-cen="pess">Pessimista</button>
+      <button type="button" data-cen="base" aria-pressed="true">Base</button>
+      <button type="button" data-cen="otim">Otimista</button>
+    </div>
+    <label class="check"><input type="checkbox" id="opt-ir" checked> Descontar imposto de renda</label>
+    <label class="check"><input type="checkbox" id="opt-infl"> Mostrar em poder de compra de hoje</label>
+  </div>
+</div>
+
+<div class="destaque">
+  <div>
+    <div class="rot">Melhor resultado no cenário</div>
+    <div class="val" id="d-melhor">—</div>
+    <div class="nota" id="d-melhor-nota">—</div>
+  </div>
+  <div>
+    <div class="rot">Total que sai do seu bolso</div>
+    <div class="val num" id="d-investido">—</div>
+    <div class="nota" id="d-investido-nota">—</div>
+  </div>
+  <div>
+    <div class="rot">Diferença entre o melhor e a poupança</div>
+    <div class="val num" id="d-delta">—</div>
+    <div class="nota">o custo de deixar parado no lugar errado</div>
+  </div>
+</div>
+
+<section>
+  <div class="cabsec">
+    <div>
+      <h2>Evolução mês a mês</h2>
+      <p>A linha tracejada é o dinheiro que você depositou. Tudo acima dela é rendimento.</p>
+    </div>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="moldura" id="moldura-linha">
+    <svg id="grafico-linha" viewBox="0 0 780 400" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Gráfico de evolução do patrimônio por aplicação"></svg>
+    <div class="dica" id="dica"></div>
+  </div>
+</section>
+
+<section>
+  <div class="cabsec">
+    <div>
+      <h2>Quanto sobra no fim</h2>
+      <p>Cada faixa tem a cor de uma cédula do real. A parte escura é o que você depositou; a colorida é o que o dinheiro rendeu.</p>
+    </div>
+  </div>
+  <div class="cedulas" id="cedulas"></div>
+  <div class="legenda-barras">
+    <span><i class="amostra ap"></i> aportes</span>
+    <span><i class="amostra rd"></i> rendimento líquido</span>
+  </div>
+</section>
+
+<section>
+  <div class="cabsec">
+    <div>
+      <h2>Números completos</h2>
+      <p>Risco indica o quanto o resultado real pode se afastar da projeção. Renda fixa entrega perto do previsto; ações e cripto, não.</p>
+    </div>
+    <button class="btn" id="btn-csv" type="button">Baixar CSV</button>
+  </div>
+  <div class="rolagem">
+    <table>
+      <thead>
+        <tr>
+          <th>Aplicação</th><th>Risco</th><th>Taxa a.a.</th><th>Valor bruto</th>
+          <th>IR estimado</th><th>Valor líquido</th><th>Rendimento</th><th>Multiplicou por</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <details>
+    <summary>Taxas, impostos e inflação usados na conta</summary>
+    <div class="corpo-det">
+      <p style="color:var(--papel-suave);font-size:13.5px;max-width:70ch">
+        Os padrões partem da Selic de 14,00% a.a. e das projeções do Focus (IPCA 5,02% em 2026, caindo para 3,50% em 2029). Ninguém sabe o retorno futuro — troque qualquer número por outro em que você acredite mais.
+      </p>
+      <div class="grade-taxas" id="grade-taxas">
+        <div class="cab">Aplicação</div><div class="cab" style="text-align:right">Pessimista</div>
+        <div class="cab" style="text-align:right">Base</div><div class="cab" style="text-align:right">Otimista</div>
+        <div class="cab">Imposto de renda</div>
+      </div>
+      <div class="linha-extra">
+        <div class="campo">
+          <label for="inflacao">Inflação anual (%)</label>
+          <input id="inflacao" type="number" step="0.1" value="4.5">
+        </div>
+        <p style="color:var(--papel-suave);font-size:12.5px;margin:0;max-width:44ch">
+          Usada só quando “poder de compra de hoje” está ligado. Ela mostra o que o valor futuro compraria hoje.
+        </p>
+      </div>
+      <div class="acoes">
+        <button class="btn" id="btn-reset" type="button">Voltar aos valores padrão</button>
+      </div>
+    </div>
+  </details>
+</section>
+
+<p class="aviso">
+  <strong>Isto é uma simulação educativa, não uma recomendação de investimento.</strong>
+  A conta assume rentabilidade constante todo mês, o que não acontece na vida real — principalmente em ações e cripto, que podem cair 40% em um ano e subir 80% no seguinte. Rentabilidade passada não garante rentabilidade futura. Para decidir de verdade, considere seu prazo, sua reserva de emergência e sua tolerância a perdas, e procure um profissional certificado.
+</p>
+
+<footer>
+  Feito com HTML, CSS e JavaScript puros. Sem servidor, sem banco de dados, sem custo: basta abrir o arquivo ou publicá-lo em qualquer hospedagem estática gratuita.
+</footer>
+</div>
+
+<script src="script-a.js"></script>
+<script src="script-b.js"></script>
+</body>
+</html>
